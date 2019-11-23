@@ -1,6 +1,7 @@
 from keras.preprocessing.image import img_to_array
 import imutils
 import cv2
+import face_recognition
 from keras.models import load_model
 import numpy as np
 
@@ -8,13 +9,14 @@ import numpy as np
 detection_model_path = 'haarcascade_files/haarcascade_frontalface_default.xml'
 emotion_model_path = 'models/_mini_XCEPTION.106-0.65.hdf5'
 
+
 # hyper-parameters for bounding boxes shape
 # loading models
 face_detection = cv2.CascadeClassifier(detection_model_path)
 emotion_classifier = load_model(emotion_model_path, compile=False)
 EMOTIONS = ["angry", "disgust", "scared", "happy", "sad", "surprised",
             "neutral"]
-
+name = 'asasa'
 # starting video streaming
 cv2.namedWindow('your_face')
 camera = cv2.VideoCapture(0)
@@ -25,6 +27,7 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_detection.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30),
                                             flags=cv2.CASCADE_SCALE_IMAGE)
+
 
     canvas = np.zeros((250, 300, 3), dtype="uint8")
     frameClone = frame.copy()
@@ -44,6 +47,9 @@ while True:
         emotion_probability = np.max(preds)
         label = EMOTIONS[preds.argmax()]
 
+    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    rgb_small_frame = small_frame[:, :, ::-1]
+
     for (i, (emotion, prob)) in enumerate(zip(EMOTIONS, preds)):
         # construct the label text
         text = "{}: {:.2f}%".format(emotion, prob * 100)
@@ -53,6 +59,8 @@ while True:
         cv2.putText(canvas, text, (10, (i * 35) + 23),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45,
                     (255, 255, 255), 2)
+        cv2.putText(frameClone, name, (fX, fY - -250),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
         cv2.putText(frameClone, label, (fX, fY - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
         cv2.rectangle(frameClone, (fX, fY), (fX + fW, fY + fH),
